@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────────────
-// server.js  – Backend Express + Stripe + Nodemailer
-// ─────────────────────────────────────────────────────
 require("dotenv").config();
 const express = require("express");
 const stripe  = require("stripe")(process.env.STRIPE_SECRET_KEY);
@@ -22,6 +19,7 @@ app.use(express.json());            // parsea JSON del body
 // Ruta para la raíz
 // ─────────────────────────────────────────────────────
 app.get('/', (req, res) => {
+  console.log("[GET /] - Página principal solicitada");
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -31,7 +29,10 @@ app.get('/', (req, res) => {
 // ─────────────────────────────────────────────────────
 app.post("/create-checkout-session", async (req, res) => {
   const { email, name } = req.body;
+  console.log("[POST /create-checkout-session] - Datos recibidos:", { email, name });
+
   if (!email || !name) {
+    console.warn("[POST /create-checkout-session] - Falta email o nombre");
     return res.status(400).json({ error: "Nombre y correo son obligatorios." });
   }
 
@@ -52,16 +53,15 @@ app.post("/create-checkout-session", async (req, res) => {
         },
       ],
       customer_email: email,
-      // Usamos el placeholder oficial {CHECKOUT_SESSION_ID} para identificar
-      // la compra luego y enviar el boleto de forma segura.
       success_url: `${DOMAIN}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url : `${DOMAIN}/cancel.html`,
-      metadata: { name },          // guardamos el nombre para recuperarlo luego
+      metadata: { name },
     });
 
+    console.log("[POST /create-checkout-session] - Sesión creada con ID:", session.id);
     return res.json({ url: session.url });
   } catch (err) {
-    console.error("Stripe error:", err);
+    console.error("[POST /create-checkout-session] - Error Stripe:", err);
     return res.status(500).json({ error: "Error al crear la sesión de pago." });
   }
 });
@@ -72,13 +72,18 @@ app.post("/create-checkout-session", async (req, res) => {
 // ─────────────────────────────────────────────────────
 app.get("/enviar-boleto", async (req, res) => {
   const { session_id } = req.query;
+  console.log("[GET /enviar-boleto] - session_id recibido:", session_id);
+
   if (!session_id) {
+    console.warn("[GET /enviar-boleto] - Falta session_id en query");
     return res.status(400).send("Falta session_id");
   }
 
   try {
     // 1. Recuperamos la sesión para obtener email y nombre
     const session = await stripe.checkout.sessions.retrieve(session_id);
+    console.log("[GET /enviar-boleto] - Sesión Stripe recuperada:", session.id);
+
     const email   = session.customer_email;
     const name    = session.metadata.name || "Asistente";
 
@@ -103,8 +108,14 @@ app.get("/enviar-boleto", async (req, res) => {
       doc.image(qrDataUrl, { fit: [150,150], align: "center" });
       doc.end();
 
-      stream.on("finish", resolve);
-      stream.on("error", reject);
+      stream.on("finish", () => {
+        console.log("[GET /enviar-boleto] - PDF generado:", pdfPath);
+        resolve();
+      });
+      stream.on("error", (err) => {
+        console.error("[GET /enviar-boleto] - Error al generar PDF:", err);
+        reject(err);
+      });
     });
 
     // 3. Mandamos correo
@@ -121,11 +132,14 @@ app.get("/enviar-boleto", async (req, res) => {
       attachments: [{ filename: "boleto.pdf", path: pdfPath }],
     });
 
+    console.log("[GET /enviar-boleto] - Correo enviado a:", email);
+
     fs.unlinkSync(pdfPath); // eliminamos temporal
+    console.log("[GET /enviar-boleto] - Archivo PDF eliminado:", pdfPath);
 
     res.send("¡Boleto enviado correctamente! Revisa tu correo.");
   } catch (err) {
-    console.error("Error al enviar boleto:", err);
+    console.error("[GET /enviar-boleto] - Error al enviar boleto:", err);
     res.status(500).send("No se pudo enviar el boleto.");
   }
 });
@@ -134,5 +148,5 @@ app.get("/enviar-boleto", async (req, res) => {
 // 3. Servidor
 // ─────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`Servidor escuchando en ${DOMAIN}`);
+  console.log(`Servidor escuchando en ${DOMAIN} (Puerto ${PORT})`);
 });
