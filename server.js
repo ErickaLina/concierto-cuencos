@@ -15,8 +15,15 @@ const PORT   = process.env.PORT   || 3000;
 const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
 
 // ── Middlewares
-app.use(express.static("public"));  // sirve index.html, style.css, etc.
+app.use(express.static(path.join(__dirname, 'public')));  // sirve index.html, style.css, etc.
 app.use(express.json());            // parsea JSON del body
+
+// ─────────────────────────────────────────────────────
+// Ruta para la raíz
+// ─────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // ─────────────────────────────────────────────────────
 // 1. Crear sesión de Stripe Checkout
