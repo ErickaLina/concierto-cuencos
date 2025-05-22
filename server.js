@@ -8,19 +8,18 @@ const PDFDocument = require("pdfkit");
 const QRCode = require("qrcode");
 
 const app = express();
-const PORT   = process.env.PORT   || 3000;
+const PORT   = process.env.PORT;
 const DOMAIN = process.env.DOMAIN || `http://localhost:${PORT}`;
 
 // ── Middlewares
-app.use(express.static(path.join(__dirname, 'public')));  // sirve index.html, style.css, etc.
-app.use(express.json());            // parsea JSON del body
+app.use(express.json()); // parsea JSON del body
 
 // ─────────────────────────────────────────────────────
-// Ruta para la raíz
+// Ruta de prueba /test para verificar si está activa
 // ─────────────────────────────────────────────────────
-app.get('/', (req, res) => {
-  console.log("[GET /] - Página principal solicitada");
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.get("/test", (req, res) => {
+  console.log("Ruta /test llamada");
+  res.send("Test OK");
 });
 
 // ─────────────────────────────────────────────────────
@@ -47,7 +46,7 @@ app.post("/create-checkout-session", async (req, res) => {
             product_data: {
               name: "Boleto - Concierto de Cuencos de Cuarzo",
             },
-            unit_amount: 35000, // $350.00 MXN
+            unit_amount: 35000,
           },
           quantity: 1,
         },
@@ -72,6 +71,7 @@ app.post("/create-checkout-session", async (req, res) => {
 // ─────────────────────────────────────────────────────
 app.get("/enviar-boleto", async (req, res) => {
   const { session_id } = req.query;
+  console.log("Ruta /enviar-boleto fue llamada con query:", req.query);
   console.log("[GET /enviar-boleto] - session_id recibido:", session_id);
 
   if (!session_id) {
@@ -80,14 +80,12 @@ app.get("/enviar-boleto", async (req, res) => {
   }
 
   try {
-    // 1. Recuperamos la sesión para obtener email y nombre
     const session = await stripe.checkout.sessions.retrieve(session_id);
     console.log("[GET /enviar-boleto] - Sesión Stripe recuperada:", session.id);
 
     const email   = session.customer_email;
     const name    = session.metadata.name || "Asistente";
 
-    // 2. Generamos PDF + QR
     const boletoId  = `BOL-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
     const qrDataUrl = await QRCode.toDataURL(boletoId);
     const pdfPath   = path.join(__dirname, `boleto_${Date.now()}.pdf`);
@@ -118,7 +116,6 @@ app.get("/enviar-boleto", async (req, res) => {
       });
     });
 
-    // 3. Mandamos correo
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: { user: process.env.EMAIL_FROM, pass: process.env.EMAIL_PASS },
@@ -133,8 +130,7 @@ app.get("/enviar-boleto", async (req, res) => {
     });
 
     console.log("[GET /enviar-boleto] - Correo enviado a:", email);
-
-    fs.unlinkSync(pdfPath); // eliminamos temporal
+    fs.unlinkSync(pdfPath);
     console.log("[GET /enviar-boleto] - Archivo PDF eliminado:", pdfPath);
 
     res.send("¡Boleto enviado correctamente! Revisa tu correo.");
@@ -143,6 +139,19 @@ app.get("/enviar-boleto", async (req, res) => {
     res.status(500).send("No se pudo enviar el boleto.");
   }
 });
+
+// ─────────────────────────────────────────────────────
+// Ruta principal
+// ─────────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  console.log("[GET /] - Página principal solicitada");
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// ─────────────────────────────────────────────────────
+// Archivos estáticos (coloca esto al final)
+// ─────────────────────────────────────────────────────
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ─────────────────────────────────────────────────────
 // 3. Servidor
