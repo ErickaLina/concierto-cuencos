@@ -4,8 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "build": "mkdir -p public && cp ./index.html public/"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "",
