@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Concierto de Cuencos de Cuarzo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Video de fondo -->
+  <div class="video-background">
+    <iframe src="https://www.youtube.com/embed/RK1RRVR9A2g?autoplay=1&mute=1&loop=1&playlist=RK1RRVR9A2g&controls=0&modestbranding=1"
+            frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>
+  </div>
+
+  <div class="overlay"></div>
+
+  <div class="content">
+    <h1 class="fade-in">Concierto de Cuencos de Cuarzo</h1>
+    <p class="fade-in delay-1">Una experiencia sonora para tu alma</p>
+    <div id="countdown" class="fade-in delay-2"></div>
+
+    <form id="payment-form" class="fade-in delay-3">
+      <input type="text" id="name" placeholder="Tu nombre completo" required />
+      <input type="email" id="email" placeholder="Tu correo electrónico" required />
+      <button type="submit" id="buy-btn">Comprar Boleto - $350 MXN</button>
+    </form>
+    <p id="error" style="color:#ffb3b3;"></p>
+  </div>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    /* ---------- Stripe ---------- */
+    const stripe = Stripe("pk_test_xxxxxxxxxxxxxxxxxxxxxxxxx"); // <- tu clave pública
+
+    document.getElementById("payment-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name  = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const btn   = document.getElementById("buy-btn");
+      const errEl = document.getElementById("error");
+      btn.disabled = true; errEl.textContent = "";
+
+      try {
+        const res = await fetch("/create-checkout-session", {
+          method : "POST",
+          headers: { "Content-Type": "application/json" },
+          body   : JSON.stringify({ name, email })
+        });
+
+        if (!res.ok) throw new Error("No se pudo iniciar la compra.");
+        const { url } = await res.json();
+        if (!url) throw new Error("Respuesta inválida del servidor.");
+        window.location.href = url;
+      } catch (err) {
+        errEl.textContent = err.message;
+        btn.disabled = false;
+      }
+    });
+
+    /* ---------- Cuenta regresiva ---------- */
+    const countdown = document.getElementById("countdown");
+    const eventDate = new Date("2025-06-06T19:00:00-06:00").getTime();
+
+    function updateCountdown() {
+      const diff = eventDate - Date.now();
+      if (diff <= 0) return countdown.textContent = "¡El concierto ha comenzado!";
+      const d = Math.floor(diff / 864e5);
+      const h = Math.floor(diff % 864e5 / 36e5);
+      const m = Math.floor(diff % 36e5 / 6e4);
+      const s = Math.floor(diff % 6e4  / 1e3);
+      countdown.textContent = `Faltan ${d} días, ${h}h ${m}m ${s}s`;
+    }
+    updateCountdown(); setInterval(updateCountdown, 1000);
+  </script>
+</body>
+</html>

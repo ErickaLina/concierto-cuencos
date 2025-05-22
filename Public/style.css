@@ -1,0 +1,109 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body, html {
+    font-family: 'Montserrat', sans-serif;
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    color: white;
+  }
+  
+  .background-video {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100vw;
+    min-height: 100vh;
+    object-fit: cover;
+    z-index: -2;
+  }
+  
+  .video-background iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    border: none;
+    object-fit: cover;
+    z-index: -2;
+  }
+  
+  @media screen and (max-aspect-ratio: 3/4) {
+    .background-video {
+      object-fit: contain;
+    }
+  }
+  
+  .overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: -1;
+  }
+  
+  .content {
+    position: relative;
+    z-index: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+  }
+  
+  h1 {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+  }
+  
+  p {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+  }
+  
+  #countdown {
+    font-size: 2em;
+    margin-bottom: 1.5em;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  input[type="text"],
+  input[type="email"] {
+    padding: 10px;
+    font-size: 1em;
+    border-radius: 5px;
+    border: none;
+    margin-bottom: 10px;
+    width: 250px;
+  }
+  
+  button {
+    background-color: #6db383;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 5px;
+    font-size: 1em;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #4f9268;
+  }

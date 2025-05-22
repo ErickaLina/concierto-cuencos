@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><meta charset="UTF-8"><title>¡Compra exitosa!</title></head>
+<body>
+  <h1>🎉 ¡Gracias por tu compra!</h1>
+  <p>En breve recibirás tu boleto en tu correo.</p>
+  <script>
+    // Al volver de Stripe, enviamos el boleto:
+    const params = new URLSearchParams(location.search);
+    const session_id = params.get("session_id");
+    if (session_id) fetch(`/enviar-boleto?session_id=${session_id}`);
+  </script>
+</body>
+</html>
+
