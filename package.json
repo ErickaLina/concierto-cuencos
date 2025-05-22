@@ -1,10 +1,11 @@
 {
   "name": "concierto-cuencos",
   "version": "1.0.0",
+  "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "mkdir -p public && cp ./index.html public/"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +18,5 @@
     "pdfkit": "^0.17.1",
     "qrcode": "^1.5.4",
     "stripe": "^18.1.1"
-  },
-  "description": ""
+  }
 }
