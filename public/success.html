@@ -1,40 +1,35 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Compra exitosa</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      margin-top: 50px;
-    }
-    #mensaje {
-      font-size: 20px;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Gracias por tu compra</title>
 </head>
 <body>
-  <h1>🎉 ¡Compra Exitosa!</h1>
-  <p id="mensaje">Generando tu boleto, por favor espera...</p>
+  <h1>¡Gracias por tu compra!</h1>
+  <p>Estamos procesando tu boleto...</p>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get("session_id");
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionId = urlParams.get("session_id");
 
     if (!sessionId) {
-      document.getElementById("mensaje").innerText = "Error: no se encontró el ID de la sesión.";
+      document.body.innerHTML += "<p>Error: session_id no encontrado en la URL.</p>";
     } else {
       fetch(`/enviar-boleto?session_id=${sessionId}`)
-        .then(res => res.text())
-        .then(texto => {
-          document.getElementById("mensaje").innerText = texto;
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Error al enviar el boleto.");
+          }
+          return response.text();
         })
-        .catch(err => {
-          console.error(err);
-          document.getElementById("mensaje").innerText = "Hubo un error al enviar el boleto.";
+        .then(data => {
+          document.body.innerHTML += `<p>${data}</p>`;
+        })
+        .catch(error => {
+          document.body.innerHTML += `<p>Error: ${error.message}</p>`;
         });
     }
   </script>
 </body>
 </html>
+
